@@ -1,8 +1,11 @@
 from io import StringIO
 
 from django.core.management import call_command
-from django.test import TestCase
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+
+from django_browser_reload.middleware import BrowserReloadMiddleware
 
 from .models import Livro
 
@@ -24,6 +27,16 @@ class CatalogoViewsTests(TestCase):
         self.assertContains(resposta, self.livro.titulo)
         self.assertContains(resposta, self.livro.get_absolute_url())
 
+    def test_lista_exibe_imagem_de_capa_quando_url_foi_informada(self):
+        self.livro.imagem_capa_url = "https://cdn.exemplo.com/python.jpg"
+        self.livro.save()
+
+        resposta = self.client.get(reverse("catalogo:lista"))
+
+        self.assertContains(resposta, 'class="w-100 h-100 object-fit-contain"')
+        self.assertContains(resposta, 'src="https://cdn.exemplo.com/python.jpg"')
+        self.assertContains(resposta, 'alt="Capa de Python em sala"')
+
     def test_pagina_de_compra_exibe_livro_e_carrossel(self):
         resposta = self.client.get(self.livro.get_absolute_url())
 
@@ -33,6 +46,16 @@ class CatalogoViewsTests(TestCase):
         self.assertContains(resposta, 'data-bs-interval="4500"')
         self.assertNotContains(resposta, 'data-bs-slide="prev"')
         self.assertNotContains(resposta, 'data-bs-slide="next"')
+
+    def test_pagina_de_compra_exibe_imagem_de_capa_quando_url_foi_informada(self):
+        self.livro.imagem_capa_url = "https://cdn.exemplo.com/python.jpg"
+        self.livro.save()
+
+        resposta = self.client.get(self.livro.get_absolute_url())
+
+        self.assertContains(resposta, 'class="w-100 h-100 object-fit-contain"')
+        self.assertContains(resposta, 'src="https://cdn.exemplo.com/python.jpg"')
+        self.assertContains(resposta, 'alt="Capa de Python em sala"')
 
     def test_livro_inexistente_retorna_404(self):
         resposta = self.client.get("/comprar/livro-que-nao-existe/")
@@ -62,3 +85,15 @@ class CatalogoViewsTests(TestCase):
 
         self.assertEqual(Livro.objects.count(), 5)
         self.assertIn("Catálogo de exemplo carregado.", saida.getvalue())
+
+
+class BrowserReloadMiddlewareTests(TestCase):
+    @override_settings(DEBUG=True)
+    def test_middleware_injects_reload_script_in_html_response(self):
+        middleware = BrowserReloadMiddleware(
+            lambda request: HttpResponse("<html><body>Conteúdo</body></html>")
+        )
+        resposta = middleware(RequestFactory().get("/"))
+
+        self.assertIn(b"reload-listener.js", resposta.content)
+        self.assertIn(b"/__reload__/events/", resposta.content)

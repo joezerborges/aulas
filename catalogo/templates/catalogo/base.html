@@ -1,4 +1,3 @@
-{% load static %}
 <!doctype html>
 <html lang="pt-br">
 <head>
@@ -10,16 +9,14 @@
           rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
-    <link href="{% static 'catalogo/site.css' %}" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark site-navbar">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold"
+            <a class="navbar-brand fw-bold"
                href="{% url 'catalogo:lista' %}"
                aria-label="Página de Papel — página inicial">
-                <span class="brand-mark" aria-hidden="true">P</span>
-                <span>Página <span class="brand-highlight">de Papel</span></span>
+                Página de Papel
             </a>
             <button class="navbar-toggler" type="button"
                     data-bs-toggle="collapse" data-bs-target="#siteNavigation"
@@ -39,7 +36,7 @@
                         <a class="nav-link" href="{% url 'catalogo:quem_somos' %}">Quem somos</a>
                     </li>
                     <li class="nav-item ms-lg-2">
-                        <a class="btn btn-navbar" href="{% url 'catalogo:lista' %}#catalogo-titulo">
+                        <a class="btn btn-warning" href="{% url 'catalogo:lista' %}#catalogo-titulo">
                             Explorar livros <span aria-hidden="true">&rarr;</span>
                         </a>
                     </li>
@@ -52,31 +49,35 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="site-footer mt-5">
+    <footer class="bg-dark text-light mt-5">
         <div class="container py-5">
             <div class="row g-4">
                 <div class="col-md-6 col-lg-5">
-                    <a class="footer-brand" href="{% url 'catalogo:lista' %}">Página de Papel</a>
-                    <p class="footer-description mt-3 mb-0">
+                    <a class="link-light fs-4 fw-bold text-decoration-none"
+                       href="{% url 'catalogo:lista' %}">Página de Papel</a>
+                    <p class="text-white-50 mt-3 mb-0">
                         Um cantinho para descobrir leituras e aprender coisas novas,
                         construído como projeto educacional com Django e Bootstrap.
                     </p>
                 </div>
                 <div class="col-6 col-md-3 col-lg-3">
-                    <h2 class="footer-heading">Explore</h2>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'catalogo:lista' %}">Catálogo de livros</a></li>
-                        <li><a href="{% url 'catalogo:quem_somos' %}">Quem somos</a></li>
+                    <h2 class="h6 text-warning text-uppercase">Explore</h2>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a class="link-light link-underline-opacity-0 link-underline-opacity-100-hover"
+                                             href="{% url 'catalogo:lista' %}">Catálogo de livros</a></li>
+                        <li><a class="link-light link-underline-opacity-0 link-underline-opacity-100-hover"
+                               href="{% url 'catalogo:quem_somos' %}">Quem somos</a></li>
                     </ul>
                 </div>
                 <div class="col-6 col-md-3 col-lg-4">
-                    <h2 class="footer-heading">Informações</h2>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'catalogo:politica_trocas' %}">Política de trocas</a></li>
+                    <h2 class="h6 text-warning text-uppercase">Informações</h2>
+                    <ul class="list-unstyled">
+                        <li><a class="link-light link-underline-opacity-0 link-underline-opacity-100-hover"
+                               href="{% url 'catalogo:politica_trocas' %}">Política de trocas</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom mt-4 pt-4">
+            <div class="border-top border-secondary mt-4 pt-4 d-flex flex-wrap justify-content-between gap-2 text-white-50 small">
                 <p class="mb-0">Projeto educacional: nenhum pedido ou pagamento é processado.</p>
                 <span>&copy; {% now "Y" %} Página de Papel</span>
             </div>

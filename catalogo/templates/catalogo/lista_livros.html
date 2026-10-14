@@ -3,9 +3,9 @@
 {% block title %}Livros | Página de Papel{% endblock %}
 
 {% block content %}
-<section class="hero py-5">
-    <div class="container py-3">
-        <p class="eyebrow mb-2">LEITURAS PARA APRENDER E CRIAR</p>
+<section class="bg-body-tertiary py-5">
+    <div class="container">
+        <p class="text-uppercase text-primary fw-semibold small mb-2">Leituras para aprender e criar</p>
         <h1 class="display-5 fw-bold">Encontre sua próxima leitura</h1>
         <p class="lead mb-0">Uma seleção de livros para acompanhar sua jornada na tecnologia.</p>
     </div>
@@ -14,7 +14,7 @@
 <section class="container py-5" aria-labelledby="catalogo-titulo">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
         <div>
-            <p class="eyebrow mb-1">NOSSO CATÁLOGO</p>
+            <p class="text-uppercase text-primary fw-semibold small mb-1">Nosso catálogo</p>
             <h2 id="catalogo-titulo" class="h3 mb-0">Livros em destaque</h2>
         </div>
         <span class="text-secondary">{{ livros|length }} livro{{ livros|length|pluralize:"s" }}</span>
@@ -23,25 +23,37 @@
     <div class="row g-4">
         {% for livro in livros %}
         <div class="col-sm-6 col-lg-4 col-xl-3">
-            <article class="card book-card h-100">
-                <div class="book-cover cover-{{ livro.estilo_capa }}">
-                    <span class="cover-label">PÁGINA DE PAPEL</span>
-                    <span class="cover-title">{{ livro.titulo }}</span>
-                    <span class="cover-author">{{ livro.autor }}</span>
-                    <span class="cover-mark" aria-hidden="true">✦</span>
+            <article class="card h-100 shadow-sm">
+                <div class="ratio ratio-1x1 bg-body-secondary">
+                    {% if livro.imagem_capa_url %}
+                    <img class="w-100 h-100 object-fit-contain"
+                         src="{{ livro.imagem_capa_url }}"
+                         alt="Capa de {{ livro.titulo }}"
+                         loading="lazy">
+                    {% else %}
+                    <div class="d-flex flex-column justify-content-center align-items-center text-center text-white p-4
+                        {% if livro.estilo_capa == 'terracota' %}bg-danger
+                        {% elif livro.estilo_capa == 'azul' %}bg-primary
+                        {% elif livro.estilo_capa == 'verde' %}bg-success
+                        {% else %}bg-secondary{% endif %}">
+                        <span class="small text-uppercase mb-3">Página de Papel</span>
+                        <span class="h3">{{ livro.titulo }}</span>
+                        <span>{{ livro.autor }}</span>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="card-body d-flex flex-column p-4">
-                    <p class="eyebrow mb-2">{{ livro.autor }}</p>
+                    <p class="text-primary fw-semibold small mb-2">{{ livro.autor }}</p>
                     <h3 class="h5 card-title">{{ livro.titulo }}</h3>
                     <p class="card-text text-secondary flex-grow-1">{{ livro.descricao }}</p>
-                    <p class="book-price mb-3">R$ {{ livro.preco }}</p>
+                    <p class="text-primary fs-5 fw-bold mb-3">R$ {{ livro.preco }}</p>
                     <a class="btn btn-primary w-100" href="{{ livro.get_absolute_url }}">Comprar</a>
                 </div>
             </article>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="empty-state p-5 text-center">
+            <div class="bg-body-tertiary rounded p-5 text-center">
                 <h3 class="h5">O catálogo ainda está vazio</h3>
                 <p class="mb-0">Cadastre livros pelo painel administrativo para exibi-los aqui.</p>
             </div>

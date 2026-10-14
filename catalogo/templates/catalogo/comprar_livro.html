@@ -4,30 +4,41 @@
 
 {% block content %}
 <section class="container py-4">
-    <a class="back-link" href="{% url 'catalogo:lista' %}">&larr; Voltar ao catálogo</a>
+    <a class="link-primary" href="{% url 'catalogo:lista' %}">&larr; Voltar ao catálogo</a>
 
     <div class="row g-5 align-items-center py-4 py-lg-5">
         <div class="col-md-5 col-lg-4">
-            <div class="book-cover book-cover-large cover-{{ livro.estilo_capa }}">
-                <span class="cover-label">PÁGINA DE PAPEL</span>
-                <span class="cover-title">{{ livro.titulo }}</span>
-                <span class="cover-author">{{ livro.autor }}</span>
-                <span class="cover-mark" aria-hidden="true">✦</span>
+            <div class="ratio ratio-1x1 bg-body-secondary rounded overflow-hidden">
+                {% if livro.imagem_capa_url %}
+                <img class="w-100 h-100 object-fit-contain"
+                     src="{{ livro.imagem_capa_url }}"
+                     alt="Capa de {{ livro.titulo }}">
+                {% else %}
+                <div class="d-flex flex-column justify-content-center align-items-center text-center text-white p-4
+                    {% if livro.estilo_capa == 'terracota' %}bg-danger
+                    {% elif livro.estilo_capa == 'azul' %}bg-primary
+                    {% elif livro.estilo_capa == 'verde' %}bg-success
+                    {% else %}bg-secondary{% endif %}">
+                    <span class="small text-uppercase mb-3">Página de Papel</span>
+                    <span class="display-6">{{ livro.titulo }}</span>
+                    <span>{{ livro.autor }}</span>
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="col-md-7 col-lg-8">
-            <p class="eyebrow mb-2">LIVRO SELECIONADO</p>
+            <p class="text-uppercase text-primary fw-semibold small mb-2">Livro selecionado</p>
             <h1 class="display-6 fw-bold">{{ livro.titulo }}</h1>
             <p class="fs-5 text-secondary">por {{ livro.autor }}</p>
-            <p class="detail-description">{{ livro.descricao }}</p>
-            <p class="book-price display-6">R$ {{ livro.preco }}</p>
-            <div class="demo-notice" role="status">
+            <p class="text-secondary fs-5">{{ livro.descricao }}</p>
+            <p class="text-primary display-6 fw-bold">R$ {{ livro.preco }}</p>
+            <div class="alert alert-info" role="status">
                 Esta é uma página de demonstração. Nenhum pedido ou pagamento será realizado.
             </div>
         </div>
     </div>
 
-    <section class="carousel-panel p-3 p-md-4" aria-label="Apresentação do livro">
+    <section class="bg-body-tertiary rounded p-3 p-md-4" aria-label="Apresentação do livro">
         <div id="livroCarousel"
              class="carousel slide"
              data-bs-ride="carousel"
@@ -36,30 +47,30 @@
              data-bs-touch="false">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <div class="carousel-message carousel-message-one">
-                        <span class="carousel-icon" aria-hidden="true">01</span>
+                    <div class="bg-primary text-white rounded p-5">
+                        <span class="badge text-bg-light mb-3">01</span>
                         <div>
-                            <p class="eyebrow mb-2">UMA BOA ESCOLHA</p>
+                            <p class="text-uppercase small mb-2">Uma boa escolha</p>
                             <h2 class="h3 mb-2">Aprenda no seu ritmo</h2>
                             <p class="mb-0">Conheça os detalhes e descubra se esta leitura combina com você.</p>
                         </div>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <div class="carousel-message carousel-message-two">
-                        <span class="carousel-icon" aria-hidden="true">02</span>
+                    <div class="bg-success text-white rounded p-5">
+                        <span class="badge text-bg-light mb-3">02</span>
                         <div>
-                            <p class="eyebrow mb-2">LEITURA COM PROPÓSITO</p>
+                            <p class="text-uppercase small mb-2">Leitura com propósito</p>
                             <h2 class="h3 mb-2">Ideias que viram projetos</h2>
                             <p class="mb-0">Use a leitura para inspirar seus próximos passos de aprendizagem.</p>
                         </div>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <div class="carousel-message carousel-message-three">
-                        <span class="carousel-icon" aria-hidden="true">03</span>
+                    <div class="bg-dark text-white rounded p-5">
+                        <span class="badge text-bg-light mb-3">03</span>
                         <div>
-                            <p class="eyebrow mb-2">PROJETO DIDÁTICO</p>
+                            <p class="text-uppercase small mb-2">Projeto didático</p>
                             <h2 class="h3 mb-2">Feito para aprender web</h2>
                             <p class="mb-0">Esta vitrine é um exemplo de integração entre Django e Bootstrap.</p>
                         </div>
