@@ -1,7 +1,9 @@
 # Página de Papel — projeto didático de livraria com Django
 
 Este material acompanha uma pequena vitrine de livros feita com **Python,
-Django, SQLite, HTML, CSS e Bootstrap**. Ele foi escrito para ser usado em
+Django, SQLite, templates HTML e Bootstrap**. O visual utiliza os componentes
+e as classes prontas do Bootstrap, sem exigir que a turma escreva CSS próprio.
+Ele foi escrito para ser usado em
 aula: apresenta primeiro o que o projeto faz, depois explica como executar e,
 por fim, guia a turma pela construção de cada parte.
 
@@ -57,7 +59,8 @@ separada do projeto.
 
 Apresente primeiro o resultado e pergunte quais informações um livro precisa
 ter na loja. Para este exercício, cada registro terá título, autor, endereço
-curto, descrição, preço e estilo visual da capa. Depois desenhe o caminho de
+curto, descrição, preço, estilo visual da capa e, opcionalmente, a URL de uma
+imagem autorizada para a capa. Depois desenhe o caminho de
 uma visita:
 
 ```text
@@ -118,13 +121,19 @@ Em seguida, instale Django e registre a dependência do projeto:
 
 ```powershell
 python -m pip install "Django>=5.2,<7.0"
-python -m pip freeze
 ```
 
 Crie o arquivo `requirements.txt` na pasta principal com:
 
 ```text
 Django>=5.2,<7.0
+django-browser-reload>=1.18,<2.0
+```
+
+Instale também o pacote de recarga automática agora registrado:
+
+```powershell
+python -m pip install -r requirements.txt
 ```
 
 **Por que manter `requirements.txt`:** uma pessoa que receber o projeto
@@ -160,7 +169,6 @@ Crie as pastas para os templates e arquivos CSS:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path catalogo\templates\catalogo
-New-Item -ItemType Directory -Force -Path static\catalogo
 ```
 
 **Por que criar `templates/catalogo`:** o Django procura os templates dentro
@@ -168,8 +176,8 @@ de cada aplicação quando `APP_DIRS` está habilitado. O nome adicional
 `catalogo` evita colisões, por exemplo, entre templates de aplicações
 diferentes com o mesmo nome `base.html`.
 
-**Por que criar `static/catalogo`:** arquivos CSS, imagens e JavaScript são
-arquivos estáticos; não são páginas renderizadas por uma view.
+Nesta versão, não é necessário criar uma pasta de CSS: vamos usar os
+componentes e as classes prontos do Bootstrap.
 
 ### Etapa 4 — configurar a aplicação e o idioma
 
@@ -177,8 +185,6 @@ Abra `livraria/settings.py`, criado pelo comando do Django.
 
 1. Na lista `INSTALLED_APPS`, acrescente `"catalogo",`.
 2. Altere o idioma para `pt-br` e o fuso horário para `America/Sao_Paulo`.
-3. Acrescente uma pasta de arquivos estáticos ao final das configurações de
-   arquivos estáticos.
 
 O resultado das partes relevantes fica assim:
 
@@ -190,7 +196,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_browser_reload",
     "catalogo",
+]
+
+MIDDLEWARE = [
+    # Preserve the middleware created by Django above this line.
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 LANGUAGE_CODE = "pt-br"
@@ -199,7 +211,6 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 ```
 
 **O que fazer:** salve e localize essas configurações no arquivo antes de
@@ -209,9 +220,19 @@ continuar.
 aplicação como parte do projeto e não encontra corretamente modelos,
 migrações e outras integrações dela.
 
-**Por que `STATICFILES_DIRS`:** informa ao Django onde procurar o CSS que
-vamos armazenar na pasta `static/` da raiz. O Bootstrap, por outro lado,
-será carregado por CDN no navegador.
+O Django já cria `STATIC_URL`, usado para localizar arquivos estáticos.
+Como esta versão usa o CSS do Bootstrap por CDN e não mantém uma folha CSS
+própria, não precisamos configurar `STATICFILES_DIRS`.
+
+Na lista real `MIDDLEWARE`, mantenha todos os itens que o Django criou e
+adicione `"django_browser_reload.middleware.BrowserReloadMiddleware"` no
+final. A linha isolada mostrada acima só destaca a adição: não substitua por
+ela a lista completa gerada pelo Django.
+
+O pacote `"django_browser_reload"` em `INSTALLED_APPS` e o middleware são
+necessários para ativar a recarga automática no navegador. Essa integração é
+explicada passo a passo na seção “Ver as alterações sem atualizar a página
+manualmente”.
 
 > O arquivo gerado pelo Django também contém `SECRET_KEY`, `DEBUG`, banco,
 > templates e middleware. Preserve a configuração gerada nessa aula; não
@@ -242,6 +263,15 @@ class Livro(models.Model):
     slug = models.SlugField(unique=True)
     descricao = models.TextField("descrição")
     preco = models.DecimalField("preço", max_digits=8, decimal_places=2)
+    imagem_capa_url = models.URLField(
+        "URL da imagem da capa",
+        max_length=500,
+        blank=True,
+        help_text=(
+            "Informe o endereço direto de uma imagem que você tem autorização "
+            "para exibir. Deixe em branco para usar a capa ilustrada."
+        ),
+    )
     estilo_capa = models.CharField(
         "estilo da capa",
         max_length=12,
@@ -269,6 +299,12 @@ class Livro(models.Model):
 - `TextField` guarda a descrição, que pode ser maior.
 - `DecimalField` representa preços com casas decimais; para dinheiro é uma
   escolha mais apropriada do que `FloatField`.
+- `URLField` armazena um endereço de imagem; `blank=True` torna o campo
+  opcional para que os livros continuem usando uma capa ilustrada quando não
+  houver imagem.
+- `max_length=500` permite URLs maiores do que o limite padrão do campo.
+- `help_text` mostra no formulário do admin como preencher o campo e lembra
+  que a imagem precisa estar autorizada.
 - `SlugField` guarda um texto apropriado para a URL, por exemplo
   `django-na-pratica`. `unique=True` impede que dois livros tenham o mesmo
   slug.
@@ -413,9 +449,13 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("__reload__/", include("django_browser_reload.urls")),
     path("", include("catalogo.urls")),
 ]
 ```
+
+Essa rota adicional é o canal de eventos usado pelo django-browser-reload.
+Ela não é uma página do catálogo que o visitante precise abrir.
 
 **Por que dividir as URLs:** o projeto escolhe qual aplicação atende à
 requisição; a aplicação conhece suas próprias rotas. Essa divisão facilita
@@ -437,10 +477,9 @@ template apropriado; não precisam consultar o modelo de livros.
 ### Etapa 10 — criar a estrutura comum dos templates
 
 Crie `catalogo/templates/catalogo/base.html`. Este arquivo será a moldura
-compartilhada pelas duas páginas:
+compartilhada pelas páginas e carrega o Bootstrap:
 
 ```html
-{% load static %}
 <!doctype html>
 <html lang="pt-br">
 <head>
@@ -449,10 +488,9 @@ compartilhada pelas duas páginas:
     <title>{% block title %}Página de Papel{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
-    <link href="{% static 'catalogo/site.css' %}" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-dark site-navbar">
+    <nav class="navbar navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'catalogo:lista' %}">
                 Página de Papel
@@ -502,9 +540,8 @@ leitores de tela que o botão controla aquele menu.
 O rodapé também fica na base, então aparece de modo consistente em todas as
 páginas. Ele agrupa os links para catálogo, “Quem somos” e “Política de
 trocas”, e exibe o aviso de que esta demonstração não processa pedidos.
-Regras CSS no `site.css` dão contraste, espaçamento e estados de foco aos
-links. No celular, as colunas do rodapé se reorganizam com as classes de
-grade do Bootstrap.
+Classes prontas do Bootstrap dão cor, contraste e espaçamento aos links. No
+celular, as colunas do rodapé se reorganizam com a grade responsiva.
 
 As páginas informativas usam o mesmo `base.html`, mas cada uma tem um
 template próprio. `quem_somos.html` explica o propósito fictício e
@@ -514,18 +551,25 @@ tratado como uma política jurídica de uma loja real.
 
 **Explique as tags:**
 
-- `{% load static %}` habilita a tag que encontra arquivos estáticos;
 - `{% block title %}` e `{% block content %}` são espaços que os templates
   filhos preencherão;
 - `{% url 'catalogo:lista' %}` resolve a rota nomeada e cria o link inicial;
-- o CSS do Bootstrap fornece componentes e classes prontos;
+- classes como `bg-dark`, `text-light`, `py-5` e `btn` aplicam os estilos que
+  o Bootstrap já fornece;
 - `bootstrap.bundle.min.js` habilita componentes interativos, como o
   carrossel;
-- o CSS local contém a identidade visual própria do projeto.
 
 Bootstrap virá de um CDN. Portanto, o navegador precisa de internet para
 baixar esses arquivos. O Django serve os templates; o navegador aplica
-Bootstrap e CSS depois de receber o HTML.
+o CSS do Bootstrap depois de receber o HTML.
+
+**Bootstrap evita escrever CSS, mas não elimina HTML:** ainda precisamos
+declarar no template se algo é um título, link, imagem ou cartão. As classes
+do Bootstrap dizem como esses elementos devem aparecer e se adaptar às telas.
+
+O pacote de recarga automática acrescenta o próprio script à resposta HTML
+em ambiente de desenvolvimento, por meio do middleware. Não precisamos
+adicionar código JavaScript nosso nem uma tag extra aos templates.
 
 ### Etapa 11 — renderizar cada livro em um cartão
 
@@ -543,10 +587,20 @@ Crie `catalogo/templates/catalogo/lista_livros.html`:
     <div class="row g-4">
         {% for livro in livros %}
         <div class="col-sm-6 col-lg-4 col-xl-3">
-            <article class="card h-100">
-                <div class="book-cover cover-{{ livro.estilo_capa }}">
-                    <span class="cover-title">{{ livro.titulo }}</span>
-                    <span>{{ livro.autor }}</span>
+            <article class="card h-100 shadow-sm">
+                <div class="ratio ratio-1x1 bg-body-secondary">
+                    {% if livro.imagem_capa_url %}
+                    <img class="w-100 h-100 object-fit-contain"
+                         src="{{ livro.imagem_capa_url }}"
+                         alt="Capa de {{ livro.titulo }}"
+                         loading="lazy">
+                    {% else %}
+                    <div class="d-flex flex-column justify-content-center align-items-center text-center text-white bg-primary p-4">
+                        <span class="small text-uppercase mb-3">Página de Papel</span>
+                        <span class="h3">{{ livro.titulo }}</span>
+                        <span>{{ livro.autor }}</span>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="card-body d-flex flex-column">
                     <h2 class="h5">{{ livro.titulo }}</h2>
@@ -596,9 +650,17 @@ Crie `catalogo/templates/catalogo/comprar_livro.html`:
     <a href="{% url 'catalogo:lista' %}">&larr; Voltar ao catálogo</a>
     <div class="row align-items-center g-4 mt-2">
         <div class="col-md-5">
-            <div class="book-cover book-cover-large cover-{{ livro.estilo_capa }}">
-                <span class="cover-title">{{ livro.titulo }}</span>
-                <span>{{ livro.autor }}</span>
+            <div class="ratio ratio-1x1 bg-body-secondary rounded overflow-hidden">
+                {% if livro.imagem_capa_url %}
+                <img class="w-100 h-100 object-fit-contain"
+                     src="{{ livro.imagem_capa_url }}"
+                     alt="Capa de {{ livro.titulo }}">
+                {% else %}
+                <div class="d-flex flex-column justify-content-center align-items-center text-center text-white bg-primary p-4">
+                    <span class="h3">{{ livro.titulo }}</span>
+                    <span>{{ livro.autor }}</span>
+                </div>
+                {% endif %}
             </div>
         </div>
         <div class="col-md-7">
@@ -621,19 +683,19 @@ Crie `catalogo/templates/catalogo/comprar_livro.html`:
              data-bs-touch="false">
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <div class="carousel-message">
+                    <div class="bg-primary text-white rounded p-5">
                         <h2>Aprenda no seu ritmo</h2>
                         <p>Conheça os detalhes e descubra se esta leitura combina com você.</p>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <div class="carousel-message">
+                    <div class="bg-success text-white rounded p-5">
                         <h2>Ideias que viram projetos</h2>
                         <p>Use a leitura para inspirar seus próximos passos de aprendizagem.</p>
                     </div>
                 </div>
                 <div class="carousel-item">
-                    <div class="carousel-message">
+                    <div class="bg-dark text-white rounded p-5">
                         <h2>Feito para aprender web</h2>
                         <p>Esta vitrine é um exemplo de integração entre Django e Bootstrap.</p>
                     </div>
@@ -656,74 +718,86 @@ atributos desativam pausa por mouse e gesto de toque.
 O JavaScript do Bootstrap foi carregado na base. Sem ele, os atributos HTML
 não bastam para avançar os slides.
 
-### Etapa 13 — escrever os estilos próprios
+### Etapa 13 — compor a aparência com classes do Bootstrap
 
-Crie `static/catalogo/site.css`. Comece com estilos pequenos para demonstrar
-que CSS local complementa Bootstrap:
+Neste projeto não criamos um arquivo CSS. A aparência vem de classes e
+componentes prontos do Bootstrap, que já incluímos em `base.html`.
 
-```css
-body {
-    background: #fffefa;
-    color: #26312f;
-    font-family: Georgia, "Times New Roman", serif;
-}
+**O que fazer:** leia as classes usadas nos templates e experimente trocar
+uma de cada vez. Por exemplo, mude `bg-primary` para `bg-success`, ou
+`btn-primary` para `btn-outline-primary`, atualize o navegador e observe o
+resultado.
 
-.site-navbar {
-    background: #263d38;
-}
+**Por que funciona sem CSS próprio:** o Bootstrap já contém as regras de
+apresentação para essas classes. Por exemplo:
 
-.book-cover {
-    align-items: flex-start;
-    aspect-ratio: 4 / 4.7;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 1.5rem;
-}
+- `container`, `row` e `col-*` organizam a grade responsiva;
+- `card`, `card-body` e `shadow-sm` formam o cartão do livro;
+- `btn`, `btn-primary` e `btn-warning` formatam os botões;
+- `bg-dark`, `bg-primary`, `text-white` e `text-secondary` aplicam cores;
+- `p-*`, `py-*`, `mb-*` e `gap-*` aplicam espaçamento;
+- `ratio ratio-1x1` reserva uma área quadrada para a imagem;
+- `w-100 h-100 object-fit-contain` encaixa a imagem nessa área sem deformá-la;
+- `alert alert-info` destaca uma mensagem;
+- `navbar` e `collapse` implementam a barra de navegação adaptável;
+- `carousel` e `carousel-item` montam o carrossel.
 
-.cover-terracota {
-    background: linear-gradient(145deg, #d57b5c, #813c36);
-}
+Bootstrap não elimina o HTML: o template ainda precisa declarar que um
+elemento é um link, imagem, título ou cartão. O que ele evita nesta aula é
+escrever as regras CSS que determinariam cores, espaçamentos, colunas e
+comportamento responsivo.
 
-.cover-azul {
-    background: linear-gradient(145deg, #5b9aab, #274a68);
-}
+**Atenção aos limites da grade:** `ratio-1x1` faz uma área quadrada. Foi
+escolhida para evitar CSS adicional; as imagens de capa mantêm sua proporção
+dentro dela por meio de `object-fit-contain`. Caso se queira uma capa com
+proporção personalizada, isso já exigiria CSS ou uma extensão/tema do
+Bootstrap.
 
-.cover-verde {
-    background: linear-gradient(145deg, #83a887, #355d4a);
-}
+### Usar uma imagem de capa por URL
 
-.cover-roxo {
-    background: linear-gradient(145deg, #9d83b4, #51416d);
-}
+O modelo do projeto também tem o campo opcional `imagem_capa_url`. Para
+habilitá-lo numa implementação feita pela turma:
 
-.cover-title {
-    font-size: 2rem;
-    font-weight: bold;
-    line-height: 1.1;
-    margin-bottom: 1rem;
-}
+1. Adicione o `URLField` ao modelo, com `blank=True`, para que o livro possa
+   continuar sem uma imagem.
+2. Crie e aplique a migração:
 
-.carousel-message {
-    background: #405c51;
-    border-radius: .5rem;
-    color: white;
-    min-height: 220px;
-    padding: 3rem;
-}
-```
+   ```powershell
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
 
-**Explique a ligação entre dado e estilo:** `estilo_capa` do modelo aparece
-como `cover-{{ livro.estilo_capa }}` no template. Para o valor
-`terracota`, o navegador recebe a classe `cover-terracota` e aplica a regra
-CSS correspondente. Essa técnica ensina a variar a apresentação por dado,
-sem guardar HTML dentro do banco.
+3. No template do cartão e no template de detalhe, teste se
+   `livro.imagem_capa_url` tem conteúdo. Se tiver, gere uma tag `<img>`; se
+   estiver vazia, mostre a capa ilustrada original:
 
-Depois de confirmar que o site funciona, a turma pode substituir esse CSS
-inicial pelo arquivo completo `static/catalogo/site.css` deste projeto para
-adicionar sombras, estados de foco, cores refinadas e ajustes para telas
-menores.
+   ```django
+   {% if livro.imagem_capa_url %}
+   <img class="w-100 h-100 object-fit-contain"
+        src="{{ livro.imagem_capa_url }}"
+        alt="Capa de {{ livro.titulo }}"
+        loading="lazy">
+   {% else %}
+   <div class="d-flex flex-column justify-content-center align-items-center text-center text-white bg-primary p-4">
+       <span class="h3">{{ livro.titulo }}</span>
+       <span>{{ livro.autor }}</span>
+   </div>
+   {% endif %}
+   ```
+
+4. No admin, edite um livro, cole a URL no campo **URL da imagem da capa**,
+   salve e confira o cartão e a página de detalhe.
+
+**A URL precisa apontar para o arquivo da imagem**, não para a página de
+produto. “Copiar endereço da imagem” no navegador pode fornecer esse link,
+mas só use a imagem se você tiver autorização para exibi-la. Uma URL pública
+não significa que a imagem esteja liberada para uso comercial. Sites de
+livros também podem bloquear a exibição em outros domínios, mudar o endereço
+ou remover a imagem; nesse caso, o navegador pode deixar de carregá-la.
+Para um site de produção, prefira imagens próprias/licenciadas hospedadas
+num serviço que permita essa utilização e mantenha uma alternativa caso a
+imagem não carregue. Neste exercício, deixar o campo vazio mantém as capas
+ilustradas como fallback.
 
 ### Etapa 14 — verificar o percurso completo antes de aprimorar
 
@@ -789,7 +863,7 @@ uma camada usando o projeto:
     -> comprar_livro(request, slug)
     -> Livro.objects / SQLite
     -> comprar_livro.html
-    -> HTML + Bootstrap + site.css no navegador
+    -> HTML + CSS do Bootstrap no navegador
 ```
 
 Finalize separando claramente o que foi implementado do que não foi:
@@ -886,6 +960,58 @@ Abra <http://127.0.0.1:8000/>. Deixe o terminal com `runserver` aberto
 enquanto usa o site; o servidor para quando o processo é encerrado. Para
 finalizá-lo, volte ao terminal e pressione `Ctrl+C`.
 
+### Ver as alterações sem atualizar a página manualmente
+
+Este projeto usa o pacote **django-browser-reload**. Ele mantém o navegador
+conectado ao servidor de desenvolvimento; quando detecta uma alteração
+relevante no código Python, nos templates ou nos arquivos estáticos, recarrega
+a página aberta automaticamente.
+
+O Django puro reinicia o servidor quando alguns arquivos Python mudam, mas
+isso não significa que uma aba já aberta no navegador sempre será atualizada.
+O pacote completa essa experiência para o desenvolvimento. Você só precisa
+deixar `runserver` rodando e a página do site aberta; depois de salvar uma
+alteração, aguarde a recarga automática. Não é necessário clicar no botão de
+atualizar do navegador.
+
+#### Como o pacote foi conectado ao projeto
+
+1. A dependência `django-browser-reload` está registrada em
+   `requirements.txt`. Num novo ambiente, ela é instalada junto com o Django:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+
+2. Em `livraria/settings.py`, `"django_browser_reload"` está em
+   `INSTALLED_APPS`, e
+   `"django_browser_reload.middleware.BrowserReloadMiddleware"` aparece no
+   fim de `MIDDLEWARE`. O middleware acrescenta o script de monitoramento às
+   respostas HTML quando `DEBUG=True`.
+
+3. Em `livraria/urls.py`, a rota
+   `path("__reload__/", include("django_browser_reload.urls"))` cria o canal
+   pelo qual o navegador recebe os avisos de alteração.
+
+4. Execute `python manage.py runserver` sem a opção `--nothreading`, abra o
+   site e deixe a aba ativa enquanto desenvolve.
+
+Não criamos um arquivo `.json` para ativar esse recurso: é a integração de
+Django e `django-browser-reload` que faz o monitoramento. Algumas ferramentas
+do editor e extensões de servidor estático usam configurações JSON, mas um
+servidor estático não executa as views nem os templates do Django. Para este
+projeto, a abordagem integrada ao Django também monitora os templates e
+reinícios do servidor.
+
+**Experimento para a turma:** abra `catalogo/templates/catalogo/lista_livros.html`,
+altere o texto do título, salve e observe a aba do navegador. Depois faça
+uma alteração simples numa view ou em outro template. O navegador deve
+recarregar automaticamente. Para uma mudança em Python, o Django também
+pode reiniciar o servidor; aguarde o terminal indicar que está pronto.
+
+Esse recurso é de desenvolvimento e só injeta o script quando `DEBUG=True`.
+Não o use como solução de produção.
+
 ### Criar um usuário do painel administrativo
 
 Em outro terminal, também na pasta do projeto e com o ambiente virtual ativo:
@@ -926,7 +1052,6 @@ catalogo/
         comprar_livro.html
         quem_somos.html
         politica_trocas.html
-static/catalogo/site.css
 ```
 
 ### Projeto e aplicação
@@ -945,8 +1070,8 @@ tenha várias áreas, como catálogo, clientes e pedidos.
 
 ### Arquivos que vale localizar durante a aula
 
-- `livraria/settings.py`: configura aplicações, banco de dados, idioma,
-  templates e arquivos estáticos.
+- `livraria/settings.py`: configura aplicações, banco de dados, idioma e
+  templates.
 - `livraria/urls.py`: conecta as URLs gerais do projeto às URLs do catálogo
   e do admin.
 - `catalogo/models.py`: define os dados que serão guardados para cada livro.
@@ -959,8 +1084,6 @@ tenha várias áreas, como catálogo, clientes e pedidos.
 - `catalogo/admin.py`: configura como o modelo aparece no painel
   administrativo.
 - `catalogo/tests.py`: verifica comportamentos importantes das páginas.
-- `static/catalogo/site.css`: define os estilos próprios da vitrine e das
-  capas ilustradas.
 - `catalogo/management/commands/carregar_livros.py`: implementa o comando
   que prepara dados de exemplo.
 
@@ -1135,16 +1258,15 @@ folha de estilos separada para cada tamanho de dispositivo.
 
 O Bootstrap é carregado do CDN em `base.html`. Isso mantém os arquivos do
 framework fora deste repositório e requer acesso à internet no navegador.
-O arquivo `static/catalogo/site.css` complementa o Bootstrap com as cores,
-capas, sombras, espaçamento e ajustes visuais do projeto.
+Classes prontas do Bootstrap controlam a grade, os cartões, a navegação,
+o rodapé, os avisos e as capas, sem uma folha CSS própria.
 
-### Capas ilustradas por CSS
+### Capas de livros
 
-As capas deste exercício são elementos HTML estilizados; não há arquivos de
-imagem de capa. A classe `cover-{{ livro.estilo_capa }}` conecta o estilo
-escolhido para o livro às regras CSS, como `.cover-terracota` ou `.cover-azul`.
-Esse exemplo permite relacionar dados do modelo à apresentação sem precisar
-de upload de arquivos.
+Quando `imagem_capa_url` está preenchido, o navegador carrega a imagem do
+endereço informado. Quando está vazio, o template monta uma capa simples com
+classes Bootstrap de alinhamento, cor e espaçamento. O projeto guarda a URL,
+não baixa nem hospeda o arquivo.
 
 ## 10. Página de detalhe e carrossel automático
 

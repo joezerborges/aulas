@@ -3,9 +3,9 @@
 {% block title %}Política de trocas | Página de Papel{% endblock %}
 
 {% block content %}
-<section class="editorial-hero">
+<section class="bg-body-tertiary">
     <div class="container py-5">
-        <p class="eyebrow mb-3">INFORMAÇÕES</p>
+        <p class="text-uppercase text-primary fw-semibold small mb-3">Informações</p>
         <h1 class="display-5 fw-bold">Política de trocas</h1>
         <p class="lead mb-0">
             Informações claras fazem parte de uma boa experiência de compra.
@@ -13,10 +13,10 @@
     </div>
 </section>
 
-<section class="container editorial-content py-5">
+<section class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="demo-notice mb-4" role="note">
+            <div class="alert alert-info mb-4" role="note">
                 <strong>Esta loja é uma demonstração educacional.</strong>
                 Não são realizadas vendas, entregas, devoluções ou trocas por
                 este site. As orientações abaixo são conteúdo ilustrativo para
@@ -53,7 +53,7 @@
                 criado por meio do catálogo.
             </p>
 
-            <a class="back-link mt-4" href="{% url 'catalogo:lista' %}">
+            <a class="btn btn-outline-primary mt-4" href="{% url 'catalogo:lista' %}">
                 &larr; Voltar ao catálogo
             </a>
         </div>

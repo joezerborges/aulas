@@ -14,6 +14,15 @@ class Livro(models.Model):
     slug = models.SlugField(unique=True)
     descricao = models.TextField("descrição")
     preco = models.DecimalField("preço", max_digits=8, decimal_places=2)
+    imagem_capa_url = models.URLField(
+        "URL da imagem da capa",
+        max_length=500,
+        blank=True,
+        help_text=(
+            "Informe o endereço direto de uma imagem que você tem autorização "
+            "para exibir. Deixe em branco para usar a capa ilustrada."
+        ),
+    )
     estilo_capa = models.CharField(
         "estilo da capa",
         max_length=12,
