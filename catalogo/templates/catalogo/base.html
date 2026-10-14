@@ -1,0 +1,90 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Livraria didática feita com Django e Bootstrap.">
+    <title>{% block title %}Página de Papel{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
+    <link href="{% static 'catalogo/site.css' %}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark site-navbar">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold"
+               href="{% url 'catalogo:lista' %}"
+               aria-label="Página de Papel — página inicial">
+                <span class="brand-mark" aria-hidden="true">P</span>
+                <span>Página <span class="brand-highlight">de Papel</span></span>
+            </a>
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#siteNavigation"
+                    aria-controls="siteNavigation" aria-expanded="false"
+                    aria-label="Abrir ou fechar menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="siteNavigation">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'catalogo:lista' %}">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'catalogo:lista' %}#catalogo-titulo">Livros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'catalogo:quem_somos' %}">Quem somos</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-navbar" href="{% url 'catalogo:lista' %}#catalogo-titulo">
+                            Explorar livros <span aria-hidden="true">&rarr;</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer mt-5">
+        <div class="container py-5">
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-5">
+                    <a class="footer-brand" href="{% url 'catalogo:lista' %}">Página de Papel</a>
+                    <p class="footer-description mt-3 mb-0">
+                        Um cantinho para descobrir leituras e aprender coisas novas,
+                        construído como projeto educacional com Django e Bootstrap.
+                    </p>
+                </div>
+                <div class="col-6 col-md-3 col-lg-3">
+                    <h2 class="footer-heading">Explore</h2>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'catalogo:lista' %}">Catálogo de livros</a></li>
+                        <li><a href="{% url 'catalogo:quem_somos' %}">Quem somos</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-md-3 col-lg-4">
+                    <h2 class="footer-heading">Informações</h2>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'catalogo:politica_trocas' %}">Política de trocas</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom mt-4 pt-4">
+                <p class="mb-0">Projeto educacional: nenhum pedido ou pagamento é processado.</p>
+                <span>&copy; {% now "Y" %} Página de Papel</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+</body>
+</html>

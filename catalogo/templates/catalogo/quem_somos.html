@@ -1,0 +1,52 @@
+{% extends "catalogo/base.html" %}
+
+{% block title %}Quem somos | Página de Papel{% endblock %}
+
+{% block content %}
+<section class="editorial-hero">
+    <div class="container py-5">
+        <p class="eyebrow mb-3">NOSSA HISTÓRIA</p>
+        <h1 class="display-5 fw-bold">Livros abrem caminhos.</h1>
+        <p class="lead mb-0">
+            A Página de Papel nasceu para aproximar pessoas de boas leituras
+            e de novas ideias.
+        </p>
+    </div>
+</section>
+
+<section class="container editorial-content py-5">
+    <div class="row g-5">
+        <div class="col-lg-7">
+            <p class="eyebrow">QUEM SOMOS</p>
+            <h2 class="h3 mb-3">Uma livraria feita para aprender junto</h2>
+            <p>
+                A Página de Papel é uma livraria fictícia criada como projeto
+                educacional. Sua vitrine apresenta livros sobre programação,
+                tecnologia e criatividade em uma interface simples e acolhedora.
+            </p>
+            <p>
+                Este site também é uma sala de aula: foi desenvolvido para
+                demonstrar como Django organiza dados e páginas, enquanto
+                Bootstrap ajuda a criar uma experiência responsiva.
+            </p>
+            <p class="mb-0">
+                Nossa ideia é que cada leitura desperte curiosidade e ajude
+                alguém a dar o próximo passo no aprendizado.
+            </p>
+        </div>
+        <aside class="col-lg-5">
+            <div class="editorial-note">
+                <span class="editorial-note-mark" aria-hidden="true">“</span>
+                <h2 class="h5">Aprender também é uma aventura.</h2>
+                <p class="mb-0">
+                    Explore o catálogo, escolha um tema e comece por uma página
+                    de cada vez.
+                </p>
+            </div>
+        </aside>
+    </div>
+    <a class="btn btn-primary mt-4" href="{% url 'catalogo:lista' %}#catalogo-titulo">
+        Conhecer os livros
+    </a>
+</section>
+{% endblock %}
