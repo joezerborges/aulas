@@ -4,6 +4,7 @@ from django.core.management import call_command
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+from django.views import defaults as error_views
 
 from django_browser_reload.middleware import BrowserReloadMiddleware
 
@@ -97,3 +98,42 @@ class BrowserReloadMiddlewareTests(TestCase):
 
         self.assertIn(b"reload-listener.js", resposta.content)
         self.assertIn(b"/__reload__/events/", resposta.content)
+
+
+class ErrorPageTests(TestCase):
+    @override_settings(DEBUG=False)
+    def test_django_error_handlers_render_custom_error_pages(self):
+        request = RequestFactory().get("/")
+        respostas = {
+            400: (
+                error_views.bad_request(request, Exception("Bad request")),
+                "Solicitação inválida",
+            ),
+            403: (
+                error_views.permission_denied(request, Exception("Forbidden")),
+                "Acesso não permitido",
+            ),
+            404: (
+                error_views.page_not_found(request, Exception("Not found")),
+                "Não encontramos essa página",
+            ),
+            500: (
+                error_views.server_error(request),
+                "Algo deu errado por aqui",
+            ),
+        }
+
+        for status_code, (resposta, mensagem) in respostas.items():
+            with self.subTest(status_code=status_code):
+                self.assertEqual(resposta.status_code, status_code)
+                self.assertContains(resposta, mensagem, status_code=status_code)
+
+    @override_settings(DEBUG=False)
+    def test_url_inexistente_exibe_pagina_personalizada_404(self):
+        resposta = self.client.get("/pagina-que-nao-existe/")
+
+        self.assertContains(
+            resposta,
+            "Não encontramos essa página",
+            status_code=404,
+        )
