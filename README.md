@@ -1046,6 +1046,11 @@ catalogo/
     views.py
     migrations/
     management/commands/carregar_livros.py
+    templates/
+        400.html
+        403.html
+        404.html
+        500.html
     templates/catalogo/
         base.html
         lista_livros.html
@@ -1081,6 +1086,8 @@ tenha várias áreas, como catálogo, clientes e pedidos.
 - `catalogo/urls.py`: associa endereços web às funções de view, incluindo
   as páginas informativas “Quem somos” e “Política de trocas”.
 - `catalogo/templates/catalogo/`: contém os HTML renderizados pelo Django.
+- `catalogo/templates/400.html`, `403.html`, `404.html` e `500.html`:
+  personalizam as páginas de erro HTTP.
 - `catalogo/admin.py`: configura como o modelo aparece no painel
   administrativo.
 - `catalogo/tests.py`: verifica comportamentos importantes das páginas.
@@ -1314,10 +1321,58 @@ O Django cria um banco temporário para os testes e o remove ao terminar.
 4. os controles de navegação não aparecem;
 5. uma página para livro inexistente responde com HTTP 404;
 6. o comando de exemplo pode ser executado novamente sem duplicar livros.
+7. os handlers do Django exibem as páginas personalizadas para os erros 400,
+   403, 404 e 500.
 
 Os testes automatizados não verificam se o CDN está acessível nem fazem uma
 inspeção visual no navegador. Para isso, abra as duas páginas e confira a
 grade, os estilos, a navegação e a troca automática dos slides.
+
+### Páginas personalizadas para erros
+
+O Django procura automaticamente os templates com estes nomes quando
+precisa exibir uma página de erro:
+
+- `400.html`: solicitação inválida;
+- `403.html`: acesso negado;
+- `404.html`: endereço ou conteúdo não encontrado;
+- `500.html`: erro inesperado no servidor.
+
+Neste projeto eles ficam diretamente em `catalogo/templates/`, na raiz de
+templates da aplicação. Não ficam dentro de `catalogo/templates/catalogo/`:
+os nomes `400.html`, `403.html`, `404.html` e `500.html` são convenções
+usadas pelos handlers padrão do Django. Como `APP_DIRS=True`, o carregador de
+templates encontra os arquivos da aplicação. Não é preciso criar rotas
+manuais para cada erro nem escrever handlers próprios para personalizar
+somente o HTML.
+
+Cada página usa classes prontas do Bootstrap e um link de volta para `/`.
+Os templates de erro são independentes da base geral para que um problema no
+layout principal ou nas URLs do site não impeça a exibição da página 500.
+
+**A diferença entre desenvolvimento e produção importa:** com `DEBUG=True`,
+o Django mostra páginas técnicas detalhadas para ajudar quem desenvolve;
+ele não usa as páginas 400/403/404/500 personalizadas. Em produção,
+`DEBUG` deve ser `False`, e o Django então usa os templates personalizados.
+Não mantenha `DEBUG=False` com `ALLOWED_HOSTS=[]`: durante a aula, para
+visualizar as páginas no navegador local, ajuste temporariamente em
+`livraria/settings.py`:
+
+```python
+DEBUG = False
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+```
+
+Reinicie `runserver` e acesse um endereço que não exista, por exemplo
+<http://127.0.0.1:8000/pagina-que-nao-existe/>. Você deverá ver a página 404
+da livraria, não a tela técnica do Django. Depois do experimento, restaure
+`DEBUG = True` para continuar desenvolvendo. A configuração de produção
+precisa de hosts reais e outras medidas de segurança; esses valores locais
+não são uma configuração pronta para publicar.
+
+Não provoque um erro 500 num site público para testar a página. Os testes
+automatizados chamam os handlers de erro do Django em condições controladas
+e verificam o código HTTP e o conteúdo correspondente.
 
 ## 12. Sequência sugerida para uma aula
 
