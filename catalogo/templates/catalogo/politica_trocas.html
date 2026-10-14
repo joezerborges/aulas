@@ -1,0 +1,62 @@
+{% extends "catalogo/base.html" %}
+
+{% block title %}Política de trocas | Página de Papel{% endblock %}
+
+{% block content %}
+<section class="editorial-hero">
+    <div class="container py-5">
+        <p class="eyebrow mb-3">INFORMAÇÕES</p>
+        <h1 class="display-5 fw-bold">Política de trocas</h1>
+        <p class="lead mb-0">
+            Informações claras fazem parte de uma boa experiência de compra.
+        </p>
+    </div>
+</section>
+
+<section class="container editorial-content py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="demo-notice mb-4" role="note">
+                <strong>Esta loja é uma demonstração educacional.</strong>
+                Não são realizadas vendas, entregas, devoluções ou trocas por
+                este site. As orientações abaixo são conteúdo ilustrativo para
+                demonstrar uma página informativa.
+            </div>
+
+            <h2 class="h4 mt-4">1. Antes de solicitar uma troca</h2>
+            <p>
+                Em uma loja real, entre em contato com o atendimento informado
+                pelo estabelecimento e explique o motivo da solicitação. Tenha
+                em mãos os dados do pedido e do produto para que a equipe possa
+                orientar os próximos passos.
+            </p>
+
+            <h2 class="h4 mt-4">2. Condições do produto</h2>
+            <p>
+                Cada estabelecimento deve informar com clareza os critérios
+                aplicáveis ao produto, a forma de envio e os prazos. Não envie
+                um produto antes de receber instruções do atendimento da loja.
+            </p>
+
+            <h2 class="h4 mt-4">3. Prazos e reembolso</h2>
+            <p>
+                Prazos, custos de envio e procedimentos de reembolso dependem
+                da situação e das regras aplicáveis ao estabelecimento. Uma
+                loja real deve apresentar suas condições completas antes da
+                compra e atender à legislação vigente.
+            </p>
+
+            <h2 class="h4 mt-4">4. Fale com a loja</h2>
+            <p class="mb-0">
+                Como esta página faz parte de um exercício, ela não possui
+                atendimento nem recebe solicitações. Nenhum pedido pode ser
+                criado por meio do catálogo.
+            </p>
+
+            <a class="back-link mt-4" href="{% url 'catalogo:lista' %}">
+                &larr; Voltar ao catálogo
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
