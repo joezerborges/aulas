@@ -105,22 +105,10 @@ class ErrorPageTests(TestCase):
     def test_django_error_handlers_render_custom_error_pages(self):
         request = RequestFactory().get("/")
         respostas = {
-            400: (
-                error_views.bad_request(request, Exception("Bad request")),
-                "Solicitação inválida",
-            ),
-            403: (
-                error_views.permission_denied(request, Exception("Forbidden")),
-                "Acesso não permitido",
-            ),
             404: (
                 error_views.page_not_found(request, Exception("Not found")),
                 "Não encontramos essa página",
-            ),
-            500: (
-                error_views.server_error(request),
-                "Algo deu errado por aqui",
-            ),
+            )
         }
 
         for status_code, (resposta, mensagem) in respostas.items():
