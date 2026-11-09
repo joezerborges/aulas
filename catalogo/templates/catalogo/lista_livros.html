@@ -25,7 +25,9 @@
         <div class="col-sm-6 col-lg-4 col-xl-3">
             <article class="card h-100 shadow-sm">
                 <div class="ratio ratio-1x1 bg-body-secondary">
-                    {% if livro.imagem_capa_url %}
+                    {% if livro_capa %}
+                    <img src="{{ livro.imagem_capa.url }}" alt="Capa de {{ livro.titulo }}">
+                    {% elif livro.imagem_capa_url %}
                     <img class="w-100 h-100 object-fit-contain"
                          src="{{ livro.imagem_capa_url }}"
                          alt="Capa de {{ livro.titulo }}"

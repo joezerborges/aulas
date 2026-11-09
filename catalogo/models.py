@@ -14,6 +14,12 @@ class Livro(models.Model):
     slug = models.SlugField(unique=True)
     descricao = models.TextField("descrição")
     preco = models.DecimalField("preço", max_digits=8, decimal_places=2)
+    imagem_capa = models.ImageField(
+        "enviar imagem ou GIF",
+        upload_to="capas/",
+        blank=True,
+        null=True
+    )
     imagem_capa_url = models.URLField(
         "URL da imagem da capa",
         max_length=500,
