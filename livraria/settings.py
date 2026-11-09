@@ -6,6 +6,8 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-development-only-change-before-deployment"
+#DEBUG = False
+#ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 DEBUG = True
 ALLOWED_HOSTS = []
 
