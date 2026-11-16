@@ -1,0 +1,40 @@
+<button type="button" class="btn btn-outline-secondary btn-sm me-3 px-4 py-1" data-bs-toggle="modal" data-bs-target="#loginAdmin">
+  Entrar
+</button>
+<div class="modal fade" id="loginAdmin" tabindex="-1" aria-labelledby="loginAdminLabel" aria-hidden="true" data-bs-theme="dark">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-3 shadow">
+      
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+
+      <div class="modal-body p-4 p-md-5 pt-2">
+        <h3 class="text-center mb-4 fw-bold text-body" id="loginAdminLabel">Login</h3>
+        
+        <!-- O action aponta diretamente para a URL de login do Admin -->
+        <form action="{% url 'admin:login' %}" method="post">
+          {% csrf_token %}
+          
+          <div class="form-floating mb-3">
+            <input type="text" name="username" class="form-control" id="usernameInput" placeholder="Usuário" required>
+            <label for="usernameInput">Usuário</label>
+          </div>
+          
+          <div class="form-floating mb-3">
+            <input type="password" name="password" class="form-control" id="passwordInput" placeholder="Senha" required>
+            <label for="passwordInput">Senha</label>
+          </div>
+          
+          <!-- Redireciona para o painel admin após logar com sucesso -->
+          <input type="hidden" name="next" value="{% url 'admin:index' %}">
+          
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-secondary btn-lg">Acessar</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
